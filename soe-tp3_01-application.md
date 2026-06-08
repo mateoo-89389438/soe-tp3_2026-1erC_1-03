@@ -4,13 +4,13 @@
 
 ## 1. Respuesta de la IA Gemini con el prompt:
 
-## Analizar y explicar (en español), el funcionamiento del código fuente contenido en los archivos adjuntos: app.c ,app_it.c , task_a.c , task_b.c y freertos.c .
+```Analizar y explicar (en español), el funcionamiento del código fuente contenido en los archivos adjuntos: app.c ,app_it.c , task_a.c , task_b.c y freertos.c.
+```
 
 Este código forma parte de un proyecto de software embebido estructurado sobre **FreeRTOS**, diseñado para demostrar el funcionamiento de un sistema controlado por eventos (Event-Triggered System). Aunque los comentarios del código hacen referencia al clásico problema de sincronización del "Productor-Consumidor", la implementación actual establece la arquitectura base del sistema operativo y ejecuta dos tareas periódicas independientes.
 
 A continuación, te explico en detalle el funcionamiento y propósito de cada archivo.
 
----
 
 ### 1. `app.c` (Inicialización y Configuración General)
 
@@ -55,8 +55,10 @@ Este archivo se encarga de configuraciones de bajo nivel vinculadas al microcont
 6. Al cumplirse 250ms, la **Tarea A** despierta, repite su ciclo y vuelve a dormir. Este ciclo de alternancia y espera continúa de manera infinita.
 
 
-# -------------------------- # ------------------------- # -------------------------- # ------------------------- # -------------------------- # ------------------------- #
-# Paso 09: Sincronización - Productor-Consumidor
+--- 
+--- 
+
+## Paso 09: Sincronización - Productor-Consumidor
 
 ### Configuración
 **Modificaciones y lógica de diseño en el código:**
@@ -65,7 +67,8 @@ Este archivo se encarga de configuraciones de bajo nivel vinculadas al microcont
 - **Sincronización del Productor (`task_a.c`):** La `Task A` ejecuta su bloque de procesamiento, simula la generación del recurso retardándose un tiempo máximo definido por la macro `TASK_A_DEL_MAX` (250 ms), y posteriormente invoca a la función **`xSemaphoreGive()`**. Esta acción incrementa el token del semáforo (lo pone en 1), notificando y desbloqueando de forma inmediata a la tarea consumidora.
 - **Bloqueo Eficiente del Consumidor (`task_b.c`):** Se eliminó el retardo autónomo e independiente de la `Task B` reemplazándolo por la función **`xSemaphoreTake()`** con un tiempo de *timeout* configurado en `portMAX_DELAY`. Esto asegura que el consumidor no realice una espera activa (*busy waiting*), pasando automáticamente al estado **Blocked** para liberar el 100% de los recursos de la CPU hasta recibir la señal del productor. Al tomar el semáforo con éxito, consume el recurso, incrementa su contador y ejecuta un delay mínimo (`TASK_B_DEL_ZERO`) para habilitar la alternancia de contexto.
 
-*Resultado*
+*Resultado terminal:*
+```
 [info]
 
 [info] app_init is running - Tick [mS] = 0
@@ -95,6 +98,7 @@ Este archivo se encarga de configuraciones de bajo nivel vinculadas al microcont
 [info]    ==> Task    B - Wait:   250mS
 [info]    ==> Task    A - Wait:   250mS
 [info]    ==> Task    B - Wait:   250mS
+```
 
 **Observaciones:**
 1. **Inicialización y Estado Inicial de Bloqueo:** Al arrancar el sistema (`Tick [mS] = 0`), el planificador inicializa concurrentemente `Task B` y `Task A`. Se observa que la `Task A` (Productor) ejecuta dos ciclos iniciales de 250ms de forma consecutiva antes de habilitar al consumidor. Esto valida el diseño: el semáforo binario nace en cero, forzando a la `Task B` a permanecer bloqueada en la cola del semáforo hasta que la `Task A` completa la producción física y libera el primer token con `xSemaphoreGive()`.
