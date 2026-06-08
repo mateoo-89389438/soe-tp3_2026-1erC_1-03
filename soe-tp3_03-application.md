@@ -4,7 +4,9 @@
 
 ## 1. Respuesta de la IA Gemini con el prompt:
 
-## Analizar y explicar (en español), el funcionamiento del código fuente contenido en los archivos adjuntos: app.c , app_it.c , task_enrtry_a.c , task_exit_a.c , task_test.c y freertos.c .
+```
+Analizar y explicar (en español), el funcionamiento del código fuente contenido en los archivos adjuntos: app.c , app_it.c , task_enrtry_a.c , task_exit_a.c , task_test.c y freertos.c .
+```
 
 El código proporcionado corresponde a una aplicación embebida basada en el sistema operativo en tiempo real (RTOS) **FreeRTOS**. Específicamente, está diseñada como un Sistema Disparado por Eventos (ETS) para simular la lógica de un "Cruce Vehicular" en el contexto de un proyecto académico.
 
@@ -62,8 +64,10 @@ Este archivo implementa las funciones "Hook" (ganchos) definidas por el usuario,
 
 
 
-# -------------------------- # ------------------------- # -------------------------- # ------------------------- # -------------------------- # ------------------------- #
-# Paso 09: Problema de Sincronización - Cruce Vehicular
+---
+---
+
+## Paso 09: Problema de Sincronización - Cruce Vehicular
 
 ### Configuración
 **Modificaciones y lógica de diseño en el código:**
@@ -72,7 +76,8 @@ Este archivo implementa las funciones "Hook" (ganchos) definidas por el usuario,
 - **Control de Capacidad Máxima y Bloqueo por Condición:** Se definió un límite físico estricto de capacidad (`MAX_CAPACITY = 2`). Cuando un puesto de entrada detecta un vehículo pero el contador ha alcanzado la capacidad máxima, se señaliza el estado del semáforo vial en **ROJO**. Para evitar una espera activa o un bloqueo mutuo (*deadlock*), la tarea libera el Mutex inmediatamente y se auto-suspende bloqueada en un semáforo binario de condición (`xSem_SpaceAvailable`).
 - **Liberación Dinámica de la Intersección:** Al procesarse un evento de egreso, la tarea de salida decrementa el contador bajo la protección del Mutex e inmediatamente emite una señalización mediante `xSemaphoreGive(xSem_SpaceAvailable)`. Esto despierta de forma inmediata a cualquier tarea de ingreso que estuviera retenida en luz roja, alternando instantáneamente el semáforo vial a **VERDE** y habilitando el acceso seguro.
 
-*Resultado con (`E_TASK_TEST_X = 3`)*
+*Resultado terminal con (`E_TASK_TEST_X = 3`)*
+```
 [info]
 
 [info] app_init is running - Tick [mS] = 0
@@ -131,7 +136,7 @@ Este archivo implementa las funciones "Hook" (ganchos) definidas por el usuario,
 [info]   <=> Task Test - e_task_test_array: index 0
 [info]   <=> Task Test - Wait:   5000mS
 [info]  ==> [Light A: GREEN] - Car ENTERS. Cars inside: 1
-
+```
 **Observaciones:**
 1. **Validación del Límite de Capacidad:** Se verifica experimentalmente el comportamiento preventivo en el `index 2`. Al intentar ingresar un tercer vehículo consecutivo estando el cruce ocupado al máximo (`Cars inside: 2`), el sistema responde de forma determinística cambiando el estado del Semáforo Vial a **RED** e interrumpiendo el flujo. La tarea ingresa al estado *Blocked* liberando recursos de cómputo.
 2. **Desbloqueo por Evento de Egreso:** En el `index 3`, ante la llegada del estímulo de salida `Exit A`, el contador disminuye a 1 de manera transitoria. De inmediato, gracias al semáforo de condición `xSem_SpaceAvailable`, la tarea de entrada que se encontraba retenida recobra su lugar en la lista de listos (*Ready List*), toma el control, cambia el estado a **GREEN** e ingresa, volviendo a ocupar el puente al máximo de su capacidad (`Cars inside: 2`). Ambos logs ocurren de forma consecutiva bajo la misma ventana de activación temporal, validando el correcto funcionamiento de las variables de condición sobre FreeRTOS.
