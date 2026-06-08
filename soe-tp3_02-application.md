@@ -4,7 +4,9 @@
 
 ## 1. Respuesta de la IA Gemini con el prompt:
 
-## Analizar y explicar (en español), el funcionamiento del código fuente contenido en los archivos adjuntos: app.c , app_it.c , task_a.c , task_b.c , y freertos.c .
+```
+Analizar y explicar (en español), el funcionamiento del código fuente contenido en los archivos adjuntos: app.c , app_it.c , task_a.c , task_b.c , y freertos.c .
+```
 
 Este conjunto de archivos en lenguaje C conforma la estructura básica de una aplicación de sistemas embebidos utilizando **FreeRTOS** (un sistema operativo en tiempo real). El código está diseñado para inicializar el sistema, crear tareas concurrentes y manejar funciones de bajo nivel como las interrupciones y los eventos del sistema operativo.
 
@@ -57,8 +59,9 @@ Este archivo implementa los "Hooks" (ganchos) de FreeRTOS. Los hooks son funcion
 * **`vApplicationTickHook`:** Se dispara con cada "tick" del reloj del sistema operativo (la interrupción periódica que usa FreeRTOS para medir el tiempo). Incrementa la variable global `g_app_tick_cnt`.
 * **`vApplicationStackOverflowHook`:** Es una función de seguridad fundamental. Si el RTOS detecta que una tarea excedió el límite de su memoria RAM asignada (Stack Overflow), ingresa a esta función. Aquí, se deshabilita la conmutación de contexto (`taskENTER_CRITICAL()`), se detiene la ejecución del sistema por completo (`configASSERT( 0 )`) para permitir la depuración, y se incrementa un contador de errores.
 
-# -------------------------- # ------------------------- # -------------------------- # ------------------------- # -------------------------- # ------------------------- #
-# Paso 09: Sincronización - Lectores y Escritores
+--- 
+--- 
+## Paso 09: Sincronización - Lectores y Escritores
 
 ### Configuración
 **Modificaciones y lógica de diseño en el código:**
@@ -67,7 +70,8 @@ Este archivo implementa los "Hooks" (ganchos) de FreeRTOS. Los hooks son funcion
 - **Resolución de Condiciones de Carrera (`xMutex_Readers`):** Se introdujo la variable compartida `readers_cnt` para llevar la cuenta exacta de lectores activos en la sección crítica. Dado que las operaciones de incremento (`++`) y decremento (`--`) no son atómicas a nivel del procesador ARM Cortex-M3 (conllevan ciclos de lectura, modificación y escritura en registros), se protegió dicha variable mediante un semáforo de exclusión mutua (`xMutex_Readers`). Esto evita inconsistencias de conteo ante cambios de contexto imprevistos por el scheduler.
 - **Lógica de Concurrencia de Lectura (First In, Last Out):** En `task_b.c` se estructuró la lógica para habilitar lecturas simultáneas. El **primer lector** en ingresar bloquea el acceso al cuarto (`roomEmpty`), impidiendo la entrada de cualquier escritor. Los lectores subsiguientes entran de forma directa sin alterar la llave del cuarto. El **último lector** en salir decrementa el contador a 0 y es el encargado de devolver la llave (`xSemaphoreGive(xSemaphore_RoomEmpty)`), liberando el cuarto para los escritores.
 
-*Resultado*
+*Resultado terminal*
+```
 [info]
 
 [info] app_init is running - Tick [mS] = 0
@@ -98,7 +102,7 @@ Este archivo implementa los "Hooks" (ganchos) de FreeRTOS. Los hooks son funcion
 [info]  -> Writer (Task A) writing. Counter: 13
 [info]  -> Writer (Task A) writing. Counter: 14
 [info]  -> Writer (Task A) writing. Counter: 15
-
+```
 **Observaciones:**
 1. **Inicialización y Concurrencia Inicial:** Al arrancar el sistema (`Tick [mS] = 0`), ambas tareas se inician de forma concurrente con igual prioridad. La `Task B` (Lector) logra tomar primero el mutex, incrementa el contador de lectores a `1` y bloquea la sala tomando la llave `roomEmpty` de forma exitosa antes de que la `Task A` intente escribir.
 2. **Determinismo Temporal de Ejecución (Relación 5:1):** Se observa experimentalmente un patrón donde por cada lectura de la `Task B`, la `Task A` (Escritor) ejecuta exactamente 5 escrituras seguidas. Esto responde estrictamente a la relación de tiempos configurada por las macros de delay de cada tarea en el código base:
