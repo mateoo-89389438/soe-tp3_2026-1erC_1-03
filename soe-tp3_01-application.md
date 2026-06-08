@@ -4,7 +4,8 @@
 
 ## 1. Respuesta de la IA Gemini con el prompt:
 
-```Analizar y explicar (en español), el funcionamiento del código fuente contenido en los archivos adjuntos: app.c ,app_it.c , task_a.c , task_b.c y freertos.c.
+```
+Analizar y explicar (en español), el funcionamiento del código fuente contenido en los archivos adjuntos: app.c ,app_it.c , task_a.c , task_b.c y freertos.c.
 ```
 
 Este código forma parte de un proyecto de software embebido estructurado sobre **FreeRTOS**, diseñado para demostrar el funcionamiento de un sistema controlado por eventos (Event-Triggered System). Aunque los comentarios del código hacen referencia al clásico problema de sincronización del "Productor-Consumidor", la implementación actual establece la arquitectura base del sistema operativo y ejecuta dos tareas periódicas independientes.
