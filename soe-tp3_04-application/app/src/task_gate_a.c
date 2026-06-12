@@ -61,9 +61,9 @@ const char *p_task_gate_a_wait_2500mS		= "   ==> Task Gate A  - Wait:   2500mS";
 /********************** external data declaration *****************************/
 uint32_t g_task_gate_a_cnt;
 
-extern SemaphoreHandle_t xMutex_Airlock;
-extern SemaphoreHandle_t xSem_OpenRequest_A;
-extern SemaphoreHandle_t xSem_DoorClosed_A;
+extern SemaphoreHandle_t h_mutex_airlock;
+extern SemaphoreHandle_t h_sem_open_request_a;
+extern SemaphoreHandle_t h_sem_door_closed_a;
 
 /********************** external functions definition ************************/
 /* Task thread */
@@ -79,7 +79,7 @@ void task_gate_a(void *parameters)
 	/* As per most tasks, this task is implemented in an infinite loop. */
 	for (;;)
 	{
-		if (xSemaphoreTake(xSem_OpenRequest_A, portMAX_DELAY) == pdTRUE)
+		if (xSemaphoreTake(h_sem_open_request_a, portMAX_DELAY) == pdTRUE)
 		{
 			/* Update Task Counter */
 			g_task_gate_a_cnt++;
@@ -87,22 +87,16 @@ void task_gate_a(void *parameters)
 			/* Print out:  */
 			LOGGER_INFO(" ==> [Gate A] Opening request detected. Checking airlock...");
 
-			/* 2. Se intenta tomar el control de la esclusa.
-				  Si otra puerta está abierta, se bloquea acá de forma segura */
-			xSemaphoreTake(xMutex_Airlock, portMAX_DELAY);
+			xSemaphoreTake(h_mutex_airlock, portMAX_DELAY);
 
-			/* 3. Esclusa libre: cambio a luz VERDE y apertura de la puerta */
 			LOGGER_INFO(" ==> [Gate A] Light: GREEN. Door OPEN. Enter the cabin.");
 
-			/* 4. Espera hasta que el simulador avise que la puerta se cerró */
 			LOGGER_INFO(" ==> [Gate A] Waiting for the door to close completely...");
-			xSemaphoreTake(xSem_DoorClosed_A, portMAX_DELAY);
+			xSemaphoreTake(h_sem_door_closed_a, portMAX_DELAY);
 
-			/* 5. La puerta se cerró de forma segura */
 			LOGGER_INFO(" <== [Gate A] Door CLOSED and secured.");
 
-			/* 6. Se libera el Mutex para que otra puerta pueda operar */
-			xSemaphoreGive(xMutex_Airlock);
+			xSemaphoreGive(h_mutex_airlock);
 
 			vTaskDelay(TASK_GATE_A_DEL_ZERO);
 		}
@@ -110,6 +104,3 @@ void task_gate_a(void *parameters)
 }
 
 /********************** end of file ******************************************/
-
-/* 1. Esperar reactivamente a que alguien solicite abrir la Puerta A */
-
