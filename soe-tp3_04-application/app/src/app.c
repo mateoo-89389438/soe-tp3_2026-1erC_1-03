@@ -81,25 +81,19 @@ uint32_t g_tasks_cnt;
 /* Declare a variable of type SemaphoreHandle_t (binary or counting) or mutex.
  * This is used to reference the semaphore that is used to synchronize a thread
  * with other thread or to ensure mutual exclusive access to...*/
+SemaphoreHandle_t h_mutex_airlock;
 
-/* Mutex de exclusión mutua para la Esclusa de Seguridad */
-SemaphoreHandle_t xMutex_Airlock;
+SemaphoreHandle_t h_sem_open_request_a;
+SemaphoreHandle_t h_sem_door_closed_a;
 
-/* Semáforos binarios para los eventos de la Puerta A */
-SemaphoreHandle_t xSem_OpenRequest_A;
-SemaphoreHandle_t xSem_DoorClosed_A;
+SemaphoreHandle_t h_sem_open_request_b;
+SemaphoreHandle_t h_sem_door_closed_b;
 
-/* Semáforos binarios para los eventos de la Puerta B */
-SemaphoreHandle_t xSem_OpenRequest_B;
-SemaphoreHandle_t xSem_DoorClosed_B;
+SemaphoreHandle_t h_sem_open_request_c;
+SemaphoreHandle_t h_sem_door_closed_c;
 
-/* Semáforos binarios para los eventos de la Puerta C */
-SemaphoreHandle_t xSem_OpenRequest_C;
-SemaphoreHandle_t xSem_DoorClosed_C;
-
-/* Semáforos binarios para los eventos de la Puerta D */
-SemaphoreHandle_t xSem_OpenRequest_D;
-SemaphoreHandle_t xSem_DoorClosed_D;
+SemaphoreHandle_t h_sem_open_request_d;
+SemaphoreHandle_t h_sem_door_closed_d;
 
 /* Declare a variable of type TaskHandle_t. This is used to reference threads. */
 TaskHandle_t h_task_gate_a;
@@ -135,37 +129,32 @@ void app_init(void)
      * successfully.
      *
      * Add queue or semaphore (binary or counting) or mutex to registry. */
-	/* Crear el Mutex de la esclusa */
-	xMutex_Airlock = xSemaphoreCreateMutex();
-	configASSERT(xMutex_Airlock != NULL);
+	h_mutex_airlock = xSemaphoreCreateMutex();
+	configASSERT(h_mutex_airlock != NULL);
 
-	/* Crear semáforos para la Puerta A */
-	xSem_OpenRequest_A = xSemaphoreCreateBinary();
-	configASSERT(xSem_OpenRequest_A != NULL);
+	h_sem_open_request_a = xSemaphoreCreateBinary();
+	configASSERT(h_sem_open_request_a != NULL);
 
-	xSem_DoorClosed_A = xSemaphoreCreateBinary();
-	configASSERT(xSem_DoorClosed_A != NULL);
+	h_sem_door_closed_a = xSemaphoreCreateBinary();
+	configASSERT(h_sem_door_closed_a != NULL);
 
-	/* Crear semáforos para la Puerta B */
-	xSem_OpenRequest_B = xSemaphoreCreateBinary();
-	configASSERT(xSem_OpenRequest_B != NULL);
+	h_sem_open_request_b = xSemaphoreCreateBinary();
+	configASSERT(h_sem_open_request_b != NULL);
 
-	xSem_DoorClosed_B = xSemaphoreCreateBinary();
-	configASSERT(xSem_DoorClosed_B != NULL);
+	h_sem_door_closed_b = xSemaphoreCreateBinary();
+	configASSERT(h_sem_door_closed_b != NULL);
 
-	/* Crear semáforos para la Puerta C */
-	xSem_OpenRequest_C = xSemaphoreCreateBinary();
-	configASSERT(xSem_OpenRequest_C != NULL);
+	h_sem_open_request_c = xSemaphoreCreateBinary();
+	configASSERT(h_sem_open_request_c != NULL);
 
-	xSem_DoorClosed_C = xSemaphoreCreateBinary();
-	configASSERT(xSem_DoorClosed_C != NULL);
+	h_sem_door_closed_c = xSemaphoreCreateBinary();
+	configASSERT(h_sem_door_closed_c != NULL);
 
-	/* Crear semáforos para la Puerta D */
-	xSem_OpenRequest_D = xSemaphoreCreateBinary();
-	configASSERT(xSem_OpenRequest_D != NULL);
+	h_sem_open_request_d = xSemaphoreCreateBinary();
+	configASSERT(h_sem_open_request_d != NULL);
 
-	xSem_DoorClosed_D = xSemaphoreCreateBinary();
-	configASSERT(xSem_DoorClosed_D != NULL);
+	h_sem_door_closed_d = xSemaphoreCreateBinary();
+	configASSERT(h_sem_door_closed_d != NULL);
 
 	/* Add threads, ... */
     BaseType_t ret;
