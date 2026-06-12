@@ -60,7 +60,7 @@ const char *p_task_b_wait_250mS			= "   ==> Task    B - Wait:   250mS";
 
 /********************** external data declaration ****************************/
 uint32_t g_task_b_cnt;
-extern SemaphoreHandle_t xSemaphore_Producer_Consumer;
+extern SemaphoreHandle_t h_sem_producer_consumer;
 
 /********************** external functions definition ************************/
 /* Task thread */
@@ -76,9 +76,8 @@ void task_b(void *parameters)
 	/* As per most tasks, this task is implemented in an infinite loop. */
 	for (;;)
     {
-		/* ESPERA a que el productor genere un elemento.
-		 * portMAX_DELAY significa que la tarea se bloquea indefinidamente hasta recibir el semáforo */
-		if (xSemaphoreTake(xSemaphore_Producer_Consumer, portMAX_DELAY) == pdTRUE)
+
+		if (xSemaphoreTake(h_sem_producer_consumer, portMAX_DELAY) == pdTRUE)
 		{
 			/* Update Task Counter */
 			g_task_b_cnt++;
