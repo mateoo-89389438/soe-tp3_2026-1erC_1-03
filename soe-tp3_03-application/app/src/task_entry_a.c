@@ -51,6 +51,7 @@
 #define TASK_ENTRY_A_DEL_ZERO	(pdMS_TO_TICKS(0ul))
 #define TASK_ENTRY_A_DEL_MAX	(pdMS_TO_TICKS(2500ul))
 
+#define MAX_CAPACITY    2ul
 /********************** internal data declaration ****************************/
 
 /********************** internal functions declaration ***********************/
@@ -60,14 +61,19 @@ const char *p_task_entry_a_wait_2500mS		= "   ==> Task Entry A - Wait:   2500mS"
 
 /********************** external data declaration *****************************/
 uint32_t g_task_entry_a_cnt;
-extern SemaphoreHandle_t xSem_Entry_A;
 
-extern SemaphoreHandle_t xSem_Entry_A;
-extern SemaphoreHandle_t xMutex_Crossing;
-extern SemaphoreHandle_t xSem_SpaceAvailable;
+/* Declare a variable of type QueueHandle_t. This is used to reference queues*/
+
+/* Declare a variable of type SemaphoreHandle_t (binary or counting) or mutex.
+ * This is used to reference the semaphore that is used to synchronize a thread
+ * with other thread or to ensure mutual exclusive access to...*/
+extern SemaphoreHandle_t h_sem_entry_a;
+extern SemaphoreHandle_t h_mutex_crossing;
+extern SemaphoreHandle_t h_sem_space_available;
 extern uint32_t g_crossing_cnt;
 
-#define MAX_CAPACITY    2ul  // Capacidad máxima definida para el cruce
+/* Declare a variable of type TaskHandle_t. This is used to reference threads. */
+
 
 /********************** external functions definition ************************/
 /* Task thread */
@@ -83,8 +89,8 @@ void task_entry_a(void *parameters)
 	/* As per most tasks, this task is implemented in an infinite loop. */
 	for (;;)
 	{
-		/* Espera a que el simulador detecte un auto en la entrada A */
-		if (xSemaphoreTake(xSem_Entry_A, portMAX_DELAY) == pdTRUE)
+
+		if (xSemaphoreTake(h_sem_entry_a, portMAX_DELAY) == pdTRUE)
 		{
 			/* Update Task Counter */
 			g_task_entry_a_cnt++;
@@ -93,24 +99,20 @@ void task_entry_a(void *parameters)
 			
 			while (entered == 0)
 			{
-				xSemaphoreTake(xMutex_Crossing, portMAX_DELAY); // Protección del recurso
+				xSemaphoreTake(h_mutex_crossing, portMAX_DELAY);
 				
 				if (g_crossing_cnt < MAX_CAPACITY)
 				{
-					/* ¡Semaforo Vial en VERDE! Hay espacio disponible */
 					g_crossing_cnt++;
 					LOGGER_INFO(" ==> [Light A: GREEN] - Car ENTERS. Cars inside: %lu", g_crossing_cnt);
-					entered = 1; // Rompe el lazo de reintento
-					xSemaphoreGive(xMutex_Crossing);
+					entered = 1;
+					xSemaphoreGive(h_mutex_crossing);
 				}
 				else
 				{
-					/* ¡Semaforo Vial en ROJO! Cruce lleno, hay que esperar */
 					LOGGER_INFO(" ==> [Light A: RED] - Intersection FULL. Car waiting...");
-					xSemaphoreGive(xMutex_Crossing); // Liberar antes de bloquearse
-					
-					/* Bloqueo acá hasta que una tarea de salida avise que hay lugar */
-					xSemaphoreTake(xSem_SpaceAvailable, portMAX_DELAY);
+					xSemaphoreGive(h_mutex_crossing);
+					xSemaphoreTake(h_sem_space_available, portMAX_DELAY);
 				}
 			}
 			vTaskDelay(TASK_ENTRY_A_DEL_ZERO);
