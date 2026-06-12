@@ -30,7 +30,7 @@ Estos archivos contienen la lógica individual de las dos rutinas que el sistema
 * **Comportamiento de la Tarea A:** Incrementa un contador global dedicado (`g_task_a_cnt`), envía el mensaje "Wait: 250mS" a la consola de registro y, fundamentalmente, llama a `vTaskDelay(TASK_A_DEL_MAX)`. Esta función bloquea la tarea (liberando el procesador) durante 250 milisegundos.
 * **Comportamiento de la Tarea B:** Su funcionamiento es idéntico estructuralmente al de la Tarea A, pero incrementa su propio contador (`g_task_b_cnt`) y su retardo de bloqueo es diez veces mayor: 2500 milisegundos (2.5 segundos) a través de la macro `TASK_B_DEL_MAX`.
 
-### 3. `freertos.c` (Ganchos / Hooks del Sistema Operativo)
+### 3. `freertos.c` (Hooks del Sistema Operativo)
 
 Este archivo permite inyectar código personalizado dentro de las rutinas internas del propio FreeRTOS mediante funciones conocidas como "Hooks".
 
