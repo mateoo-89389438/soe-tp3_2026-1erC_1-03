@@ -61,9 +61,9 @@ const char *p_task_gate_b_wait_2500mS		= "   ==> Task Gate B  - Wait:   2500mS";
 /********************** external data declaration *****************************/
 uint32_t g_task_gate_b_cnt;
 
-extern SemaphoreHandle_t xMutex_Airlock;
-extern SemaphoreHandle_t xSem_OpenRequest_B;
-extern SemaphoreHandle_t xSem_DoorClosed_B;
+extern SemaphoreHandle_t h_mutex_airlock;
+extern SemaphoreHandle_t h_sem_open_request_b;
+extern SemaphoreHandle_t h_sem_door_closed_b;
 /********************** external functions definition ************************/
 /* Task thread */
 void task_gate_b(void *parameters)
@@ -78,7 +78,7 @@ void task_gate_b(void *parameters)
 	/* As per most tasks, this task is implemented in an infinite loop. */
 	for (;;)
 	{
-		if (xSemaphoreTake(xSem_OpenRequest_B, portMAX_DELAY) == pdTRUE)
+		if (xSemaphoreTake(h_sem_open_request_b, portMAX_DELAY) == pdTRUE)
 		{
 			/* Update Task Counter */
 			g_task_gate_b_cnt++;
@@ -86,22 +86,16 @@ void task_gate_b(void *parameters)
 			/* Print out:  */
 			LOGGER_INFO(" ==> [Gate B] Opening request detected. Checking airlock...");
 
-			/* 2. Se intenta tomar el control de la esclusa.
-				  Si otra puerta está abierta, se bloquea acá de forma segura */
-			xSemaphoreTake(xMutex_Airlock, portMAX_DELAY);
+			xSemaphoreTake(h_mutex_airlock, portMAX_DELAY);
 
-			/* 3. Esclusa libre: cambio a luz VERDE y apertura de la puerta */
 			LOGGER_INFO(" ==> [Gate B] Light: GREEN. Door OPEN. Enter the cabin.");
 
-			/* 4. Espera hasta que el simulador avise que la puerta se cerró */
 			LOGGER_INFO(" ==> [Gate B] Waiting for the door to close completely...");
-			xSemaphoreTake(xSem_DoorClosed_B, portMAX_DELAY);
+			xSemaphoreTake(h_sem_door_closed_b, portMAX_DELAY);
 
-			/* 5. La puerta se cerró de forma segura */
 			LOGGER_INFO(" <== [Gate B] Door CLOSED and secured.");
 
-			/* 6. Se libera el Mutex para que otra puerta pueda operar */
-			xSemaphoreGive(xMutex_Airlock);
+			xSemaphoreGive(h_mutex_airlock);
 
 			vTaskDelay(TASK_GATE_B_DEL_ZERO);
 		}
