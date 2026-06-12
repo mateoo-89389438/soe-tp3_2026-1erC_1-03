@@ -71,12 +71,12 @@ Este archivo implementa las funciones "Hook" (ganchos) definidas por el usuario,
 
 ### Configuración
 **Modificaciones y lógica de diseño en el código:**
-- **Sincronización Reactiva (Event-Driven):** Se eliminaron los retardos de tiempo autónomos de las tareas de control de los puestos A y B. En su lugar, se implementaron 4 semáforos binarios globales (`xSem_Entry_A`, `xSem_Exit_A`, `xSem_Entry_B`, `xSem_Exit_B`) inicializados en 0 en `app.c`. La tarea de simulación de alta prioridad `task_test` actúa como generadora de eventos utilizando primitivas `xSemaphoreGive()`, mientras que las tareas de ingreso y egreso permanecen bloqueadas en `xSemaphoreTake(..., portMAX_DELAY)` hasta ser requeridas.
+- **Sincronización Reactiva (Event-Driven):** Se eliminaron los retardos de tiempo autónomos de las tareas de control de los puestos A y B. En su lugar, se implementaron 4 semáforos binarios globales (`h_sem_entry_a`, `h_sem_exit_a`, `h_sem_entry_b`, `h_sem_entry_b`) inicializados en 0 en `app.c`. La tarea de simulación de alta prioridad `task_test` actúa como generadora de eventos utilizando primitivas `xSemaphoreGive()`, mientras que las tareas de ingreso y egreso permanecen bloqueadas en `xSemaphoreTake(..., portMAX_DELAY)` hasta ser requeridas.
 - **Exclusión Mutua del Recurso Compartido:** La ocupación del cruce se modela con una variable global compartida (`g_crossing_cnt`). Para evitar condiciones de carrera (*race conditions*) derivadas de la concurrencia, se implementó un Mutex denominado `xMutex_Crossing` que garantiza que solo una tarea a la vez pueda evaluar o modificar el estado del contador.
 - **Control de Capacidad Máxima y Bloqueo por Condición:** Se definió un límite físico estricto de capacidad (`MAX_CAPACITY = 2`). Cuando un puesto de entrada detecta un vehículo pero el contador ha alcanzado la capacidad máxima, se señaliza el estado del semáforo vial en **ROJO**. Para evitar una espera activa o un bloqueo mutuo (*deadlock*), la tarea libera el Mutex inmediatamente y se auto-suspende bloqueada en un semáforo binario de condición (`xSem_SpaceAvailable`).
 - **Liberación Dinámica de la Intersección:** Al procesarse un evento de egreso, la tarea de salida decrementa el contador bajo la protección del Mutex e inmediatamente emite una señalización mediante `xSemaphoreGive(xSem_SpaceAvailable)`. Esto despierta de forma inmediata a cualquier tarea de ingreso que estuviera retenida en luz roja, alternando instantáneamente el semáforo vial a **VERDE** y habilitando el acceso seguro.
 
-*Resultado terminal con (`E_TASK_TEST_X = 3`)*
+*Resultado terminal con (`E_TASK_TEST_X = 3`):*
 ```
 [info]
 
