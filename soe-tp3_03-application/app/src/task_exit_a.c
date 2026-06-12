@@ -60,12 +60,18 @@ const char *p_task_exit_a_wait_2500mS		= "   ==> Task Exit A  - Wait:   2500mS";
 
 /********************** external data declaration *****************************/
 uint32_t g_task_exit_a_cnt;
-extern SemaphoreHandle_t xSem_Exit_A;
 
-extern SemaphoreHandle_t xSem_Exit_A;
-extern SemaphoreHandle_t xMutex_Crossing;
-extern SemaphoreHandle_t xSem_SpaceAvailable;
+/* Declare a variable of type QueueHandle_t. This is used to reference queues*/
+
+/* Declare a variable of type SemaphoreHandle_t (binary or counting) or mutex.
+ * This is used to reference the semaphore that is used to synchronize a thread
+ * with other thread or to ensure mutual exclusive access to...*/
+extern SemaphoreHandle_t h_sem_exit_a;
+extern SemaphoreHandle_t h_mutex_crossing;
+extern SemaphoreHandle_t h_sem_space_available;
 extern uint32_t g_crossing_cnt;
+
+/* Declare a variable of type TaskHandle_t. This is used to reference threads. */
 
 /********************** external functions definition ************************/
 /* Task thread */
@@ -81,24 +87,22 @@ void task_exit_a(void *parameters)
 	/* As per most tasks, this task is implemented in an infinite loop. */
 	for (;;)
 	{
-		/* Espera a que el simulador detecte que un auto sale por A */
-		if (xSemaphoreTake(xSem_Exit_A, portMAX_DELAY) == pdTRUE)
+		if (xSemaphoreTake(h_sem_exit_a, portMAX_DELAY) == pdTRUE)
 		{
 			/* Update Task Counter */
 			g_task_exit_a_cnt++;
 
-			xSemaphoreTake(xMutex_Crossing, portMAX_DELAY); // Protección del recurso
+			xSemaphoreTake(h_mutex_crossing, portMAX_DELAY);
 			
 			if (g_crossing_cnt > 0)
 			{
 				g_crossing_cnt--;
 				LOGGER_INFO(" <== [Exit A] - Car exited. Cars inside: %lu", g_crossing_cnt);
 				
-				/* Se notifica que se liberó un lugar en el cruce */
-				xSemaphoreGive(xSem_SpaceAvailable);
+				xSemaphoreGive(h_sem_space_available);
 			}
 			
-			xSemaphoreGive(xMutex_Crossing);
+			xSemaphoreGive(h_mutex_crossing);
 			vTaskDelay(TASK_EXIT_A_DEL_ZERO);
 		}
 	}
