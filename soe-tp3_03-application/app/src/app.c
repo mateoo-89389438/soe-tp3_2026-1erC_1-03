@@ -125,6 +125,9 @@ void app_init(void)
      * successfully.
      *
      * Add queue or semaphore (binary or counting) or mutex to registry. */
+	h_sem_entry_a = xSemaphoreCreateBinary();
+	configASSERT(h_sem_entry_a != NULL);
+
 	h_sem_exit_a = xSemaphoreCreateBinary();
 	configASSERT(h_sem_exit_a != NULL);
 
