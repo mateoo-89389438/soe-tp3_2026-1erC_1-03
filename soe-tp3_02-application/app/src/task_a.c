@@ -62,8 +62,8 @@ const char *p_task_a_wait_250mS			= "   ==> Task    A - Wait:   250mS";
 uint32_t g_task_a_cnt;
 
 extern uint32_t readers_cnt;
-extern SemaphoreHandle_t xMutex_Readers;
-extern SemaphoreHandle_t xSemaphore_RoomEmpty;
+extern SemaphoreHandle_t h_mutex_readers;
+extern SemaphoreHandle_t h_sem_room_empty;
 
 /********************** external functions definition ************************/
 /* Task thread */
@@ -79,21 +79,17 @@ void task_a(void *parameters)
 	/* As per most tasks, this task is implemented in an infinite loop. */
 	for (;;)
 	{
-		/* El escritor intenta entrar al cuarto vacío */
-		if (xSemaphoreTake(xSemaphore_RoomEmpty, portMAX_DELAY) == pdTRUE)
+		if (xSemaphoreTake(h_sem_room_empty, portMAX_DELAY) == pdTRUE)
 		{
-			/* --- SECCIÓN CRÍTICA: Escribiendo --- */
 			/* Update Task Counter */
 			g_task_a_cnt++;
 
 			/* Print out: Writing*/
 			LOGGER_INFO(" <- Writer (Task A) writing. Counter: %lu", g_task_a_cnt);
 
-			// Simulamos el tiempo que tarda en escribir
 			vTaskDelay(TASK_A_DEL_MAX);
 
-			/* El escritor sale del cuarto y lo deja libre */
-			xSemaphoreGive(xSemaphore_RoomEmpty);
+			xSemaphoreGive(h_sem_room_empty);
 			LOGGER_INFO(" -> Writer (Task A) leaving. Room Free\n");
 
 		}
