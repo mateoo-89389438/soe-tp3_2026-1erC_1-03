@@ -70,38 +70,55 @@ Este archivo implementa los "Hooks" (ganchos) de FreeRTOS. Los hooks son funcion
 - **Resolución de Condiciones de Carrera (`h_mutex_readers`):** Se introdujo la variable compartida `readers_cnt` para llevar la cuenta exacta de lectores activos en la sección crítica. Dado que las operaciones de incremento (`++`) y decremento (`--`) no son atómicas a nivel del procesador ARM Cortex-M3 (conllevan ciclos de lectura, modificación y escritura en registros), se protegió dicha variable mediante un semáforo de exclusión mutua (`h_mutex_readers`). Esto evita inconsistencias de conteo ante cambios de contexto imprevistos por el scheduler.
 - **Lógica de Concurrencia de Lectura (First In, Last Out):** En `task_b.c` se estructuró la lógica para habilitar lecturas simultáneas. El **primer lector** en ingresar bloquea el acceso al cuarto (`roomEmpty`), impidiendo la entrada de cualquier escritor. Los lectores subsiguientes entran de forma directa sin alterar la llave del cuarto. El **último lector** en salir decrementa el contador a 0 y es el encargado de devolver la llave (`xSemaphoreGive(h_sem_room_empty)`), liberando el cuarto para los escritores.
 
-*Resultado terminal*
+*Resultado terminal:*
 ```
-[info]
-
+[info]  
 [info] app_init is running - Tick [mS] = 0
 [info]  app is a RTOS - Event-Triggered Systems (ETS)
 [info]  app is a seo-tp3_02-application: Readers-Writers
 [info]  app is a (Source => TA149 - Sistemas Operativos Embebidos)
-[info]
-
+[info]  
 [info]   Task B is running - Tick [mS] = 0
 [info]  <- Reader (Task B) reading. Readers inside: 1
-[info]
-
+[info]  
 [info]   Task A is running - Tick [mS] = 0
-[info]  -> Writer (Task A) writing. Counter: 1
-[info]  -> Writer (Task A) writing. Counter: 2
-[info]  -> Writer (Task A) writing. Counter: 3
-[info]  -> Writer (Task A) writing. Counter: 4
-[info]  -> Writer (Task A) writing. Counter: 5
+[info]  -> Reader (Task B) leaving. Readers inside: 0
+
+[info]  <- Writer (Task A) writing. Counter: 1
+[info]  -> Writer (Task A) leaving. Room Free
+
+[info]  <- Writer (Task A) writing. Counter: 2
+[info]  -> Writer (Task A) leaving. Room Free
+
+[info]  <- Writer (Task A) writing. Counter: 3
+[info]  -> Writer (Task A) leaving. Room Free
+
+[info]  <- Writer (Task A) writing. Counter: 4
+[info]  -> Writer (Task A) leaving. Room Free
+
+[info]  <- Writer (Task A) writing. Counter: 5
+[info]  -> Writer (Task A) leaving. Room Free
+
 [info]  <- Reader (Task B) reading. Readers inside: 1
-[info]  -> Writer (Task A) writing. Counter: 6
-[info]  -> Writer (Task A) writing. Counter: 7
-[info]  -> Writer (Task A) writing. Counter: 8
-[info]  -> Writer (Task A) writing. Counter: 9
-[info]  -> Writer (Task A) writing. Counter: 10
+[info]  -> Reader (Task B) leaving. Readers inside: 0
+
+[info]  <- Writer (Task A) writing. Counter: 6
+[info]  -> Writer (Task A) leaving. Room Free
+
+[info]  <- Writer (Task A) writing. Counter: 7
+[info]  -> Writer (Task A) leaving. Room Free
+
+[info]  <- Writer (Task A) writing. Counter: 8
+[info]  -> Writer (Task A) leaving. Room Free
+
+[info]  <- Writer (Task A) writing. Counter: 9
+[info]  -> Writer (Task A) leaving. Room Free
+
+[info]  <- Writer (Task A) writing. Counter: 10
+[info]  -> Writer (Task A) leaving. Room Free
+
 [info]  <- Reader (Task B) reading. Readers inside: 1
-[info]  -> Writer (Task A) writing. Counter: 11
-[info]  -> Writer (Task A) writing. Counter: 12
-[info]  -> Writer (Task A) writing. Counter: 13
-[info]  -> Writer (Task A) writing. Counter: 14
-[info]  -> Writer (Task A) writing. Counter: 15
+[info]  -> Reader (Task B) leaving. Readers inside: 0
 ```
 **Observaciones:**
 1. **Inicialización y Concurrencia Inicial:** Al arrancar el sistema (`Tick [mS] = 0`), ambas tareas se inician de forma concurrente con igual prioridad. La `Task B` (Lector) logra tomar primero el mutex, incrementa el contador de lectores a `1` y bloquea la sala tomando la llave `roomEmpty` de forma exitosa antes de que la `Task A` intente escribir.
