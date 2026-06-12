@@ -74,17 +74,15 @@ uint32_t g_app_task_cnt;
 uint32_t g_app_tick_cnt;
 uint32_t g_task_idle_cnt;
 uint32_t g_app_stack_overflow_cnt;
-
 uint32_t g_tasks_cnt;
-
-uint32_t readers_cnt = 0; // Contador de lectores en el cuarto
-SemaphoreHandle_t xMutex_Readers; // Protege a readers_cnt
-SemaphoreHandle_t xSemaphore_RoomEmpty; // Llave de acceso al cuarto
+uint32_t readers_cnt = 0;
 /* Declare a variable of type QueueHandle_t. This is used to reference queues*/
 
 /* Declare a variable of type SemaphoreHandle_t (binary or counting) or mutex.
  * This is used to reference the semaphore that is used to synchronize a thread
  * with other thread or to ensure mutual exclusive access to...*/
+SemaphoreHandle_t h_mutex_readers;
+SemaphoreHandle_t h_sem_room_empty;
 
 /* Declare a variable of type TaskHandle_t. This is used to reference threads. */
 TaskHandle_t h_task_a;
@@ -112,23 +110,16 @@ void app_init(void)
 
     /* Before a queue or semaphore (binary or counting) or mutex is used it must 
      * be explicitly created.*/
+	h_mutex_readers = xSemaphoreCreateMutex();
+	h_sem_room_empty = xSemaphoreCreateBinary();
 
-	// El Mutex se crea e inicialmente está "disponible" (en 1)
-	xMutex_Readers = xSemaphoreCreateMutex();
-	configASSERT(xMutex_Readers != NULL);
+	/* Check the queue or semaphore (binary or counting) or mutex was created
+	 * successfully. */
+	configASSERT(h_mutex_readers != NULL);
+	configASSERT(h_sem_room_empty != NULL);
 
-	// El semáforo binario para señalización/llave
-	xSemaphore_RoomEmpty = xSemaphoreCreateBinary();
-	configASSERT(xSemaphore_RoomEmpty != NULL);
-
-	// IMPORTANTE: xSemaphoreCreateBinary() nace vacío (en 0).
-	// Para que simule ser un Semaphore(1), debemos "darlo" una vez al inicio:
-	xSemaphoreGive(xSemaphore_RoomEmpty);
-	/*
-	 * Check the queue or semaphore (binary or counting) or mutex was created
-     * successfully.
-     *
-     * Add queue or semaphore (binary or counting) or mutex to registry. */
+	/* Add queue or semaphore (binary or counting) or mutex to registry. */
+	xSemaphoreGive(h_sem_room_empty);
 
 	/* Add threads, ... */
     BaseType_t ret;
