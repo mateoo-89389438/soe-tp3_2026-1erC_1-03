@@ -64,7 +64,7 @@
 
 /********************** internal data definition *****************************/
 const char *p_app	= "RTOS - Event-Triggered Systems (ETS)";
-const char *p_app_	= "seo-tp3_03-application: Vehicular crossing";
+const char *p_app_	= "soe-tp3_03-application: Vehicular crossing";
 const char *p_app__	= "(Source => TA149 - Sistemas Operativos Embebidos)";
 
 /********************** external data declaration ****************************/
@@ -76,22 +76,20 @@ uint32_t g_app_stack_overflow_cnt;
 
 uint32_t g_tasks_cnt;
 
+uint32_t g_crossing_cnt = 0;
+
 /* Declare a variable of type QueueHandle_t. This is used to reference queues*/
 
 /* Declare a variable of type SemaphoreHandle_t (binary or counting) or mutex.
  * This is used to reference the semaphore that is used to synchronize a thread
  * with other thread or to ensure mutual exclusive access to...*/
+SemaphoreHandle_t h_sem_entry_a;
+SemaphoreHandle_t h_sem_exit_a;
+SemaphoreHandle_t h_sem_entry_b;
+SemaphoreHandle_t h_sem_exit_b;
 
-/* Semáforos binarios para señalización de eventos de tráfico */
-SemaphoreHandle_t xSem_Entry_A;
-SemaphoreHandle_t xSem_Exit_A;
-SemaphoreHandle_t xSem_Entry_B;
-SemaphoreHandle_t xSem_Exit_B;
-
-/* Control de capacidad del cruce */
-uint32_t g_crossing_cnt = 0;             // Contador de autos actualmente dentro del cruce
-SemaphoreHandle_t xMutex_Crossing;       // Proteccion del contador global
-SemaphoreHandle_t xSem_SpaceAvailable;   // Variable de condición: avisa si hay lugar
+SemaphoreHandle_t h_mutex_crossing;
+SemaphoreHandle_t h_sem_space_available;
 
 /* Declare a variable of type TaskHandle_t. This is used to reference threads. */
 TaskHandle_t h_task_entry_a;
@@ -127,28 +125,21 @@ void app_init(void)
      * successfully.
      *
      * Add queue or semaphore (binary or counting) or mutex to registry. */
+	h_sem_exit_a = xSemaphoreCreateBinary();
+	configASSERT(h_sem_exit_a != NULL);
 
-	/* Creación de los semáforos binarios (nacen en cero, ideales para señalización) */
-	xSem_Entry_A = xSemaphoreCreateBinary();
-	configASSERT(xSem_Entry_A != NULL);
+	h_sem_entry_b = xSemaphoreCreateBinary();
+	configASSERT(h_sem_entry_b != NULL);
 
-	xSem_Exit_A = xSemaphoreCreateBinary();
-	configASSERT(xSem_Exit_A != NULL);
-
-	xSem_Entry_B = xSemaphoreCreateBinary();
-	configASSERT(xSem_Entry_B != NULL);
-
-	xSem_Exit_B = xSemaphoreCreateBinary();
-	configASSERT(xSem_Exit_B != NULL);
+	h_sem_exit_b = xSemaphoreCreateBinary();
+	configASSERT(h_sem_exit_b != NULL);
 
 
-	/* Crear el Mutex de protección */
-	xMutex_Crossing = xSemaphoreCreateMutex();
-	configASSERT(xMutex_Crossing != NULL);
+	h_mutex_crossing = xSemaphoreCreateMutex();
+	configASSERT(h_mutex_crossing != NULL);
 
-	/* Crear el semáforo de condición (nace en 0, se usa para esperar lugar) */
-	xSem_SpaceAvailable = xSemaphoreCreateBinary();
-	configASSERT(xSem_SpaceAvailable != NULL);
+	h_sem_space_available = xSemaphoreCreateBinary();
+	configASSERT(h_sem_space_available != NULL);
 
 	/* Add threads, ... */
     BaseType_t ret;
