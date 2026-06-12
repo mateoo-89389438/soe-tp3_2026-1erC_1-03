@@ -160,19 +160,19 @@ void task_test(void *parameters)
 			switch (e_task_test_array[index]) {
 
 	    		case Entry_A:
-	    			xSemaphoreGive(h_sem_entry_a); /* Avisa que llegó un vehículo al ingreso A */
+	    			xSemaphoreGive(h_sem_entry_a);
 		    		break;
 
 	    		case Exit_A:
-					xSemaphoreGive(h_sem_exit_a); /* Avisa que un vehículo llegó al egreso A */
+					xSemaphoreGive(h_sem_exit_a);
 		    		break;
 
 	    		case Entry_B:
-					xSemaphoreGive(h_sem_entry_b); /* Avisa que llegó un vehículo al ingreso B */
+					xSemaphoreGive(h_sem_entry_b);
 					break;
 
 				case Exit_B:
-					xSemaphoreGive(h_sem_exit_b); /* Avisa que un vehículo llegó al egreso B */
+					xSemaphoreGive(h_sem_exit_b);
 					break;
 
 		    	//case Error:
