@@ -62,8 +62,8 @@ const char *p_task_b_wait_250mS			= "   ==> Task    B - Wait:   250mS";
 uint32_t g_task_b_cnt;
 
 extern uint32_t readers_cnt;
-extern SemaphoreHandle_t xMutex_Readers;
-extern SemaphoreHandle_t xSemaphore_RoomEmpty;
+extern SemaphoreHandle_t h_mutex_readers;
+extern SemaphoreHandle_t h_sem_room_empty;
 
 /********************** external functions definition ************************/
 /* Task thread */
@@ -79,38 +79,33 @@ void task_b(void *parameters)
 	/* As per most tasks, this task is implemented in an infinite loop. */
 	for (;;)
     {
-		/* --- Entrada del Lector --- */
-		xSemaphoreTake(xMutex_Readers, portMAX_DELAY); // Se protege el contador
+		/* --- Reader Entry --- */
+		xSemaphoreTake(h_mutex_readers, portMAX_DELAY);
 		readers_cnt++;
 
 		if (readers_cnt == 1)
 		{
-			// El primer lector, bloquea el cuarto para los escritores
-			xSemaphoreTake(xSemaphore_RoomEmpty, portMAX_DELAY);
+			xSemaphoreTake(h_sem_room_empty, portMAX_DELAY);
 		}
-		xSemaphoreGive(xMutex_Readers); // Liberamos el contador
+		xSemaphoreGive(h_mutex_readers);
 
-		/* --- SECCIÓN CRÍTICA: Leyendo --- */
 		/* Update Task Counter */
 		g_task_b_cnt++;
 
 		/* Print out: Reader reading */
 		LOGGER_INFO(" <- Reader (Task B) reading. Readers inside: %lu", readers_cnt);
-		vTaskDelay(TASK_B_DEL_ZERO); // Opcional o delay mínimo de lectura
+		vTaskDelay(TASK_B_DEL_ZERO);
 
-		/* --- Salida del Lector --- */
-		xSemaphoreTake(xMutex_Readers, portMAX_DELAY); // Se protege el contador de nuevo
+		/* --- Reader Exit --- */
+		xSemaphoreTake(h_mutex_readers, portMAX_DELAY);
 		readers_cnt--;
 		LOGGER_INFO(" -> Reader (Task B) leaving. Readers inside: %lu\n", readers_cnt);
 
 		if (readers_cnt == 0)
 		{
-			// El último lector en irme, libera el cuarto para los escritores
-			xSemaphoreGive(xSemaphore_RoomEmpty);
+			xSemaphoreGive(h_sem_room_empty);
 		}
-		xSemaphoreGive(xMutex_Readers); // Se libera el contador
-
-		// Delay antes de querer volver a leer
+		xSemaphoreGive(h_mutex_readers);
 		vTaskDelay(TASK_B_DEL_MAX);
 	}
 }
