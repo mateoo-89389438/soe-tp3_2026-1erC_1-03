@@ -105,17 +105,17 @@ const e_task_test_t e_task_test_array[] = {OPEN_REQUEST_D, DOOR_CLOSED_D, OPEN_R
 uint32_t g_task_test_cnt;
 
 /* Semáforos externos declarados en app.c */
-extern SemaphoreHandle_t xSem_OpenRequest_A;
-extern SemaphoreHandle_t xSem_DoorClosed_A;
+extern SemaphoreHandle_t h_sem_open_request_a;
+extern SemaphoreHandle_t h_sem_door_closed_a;
 
-extern SemaphoreHandle_t xSem_OpenRequest_B;
-extern SemaphoreHandle_t xSem_DoorClosed_B;
+extern SemaphoreHandle_t h_sem_open_request_b;
+extern SemaphoreHandle_t h_sem_door_closed_b;
 
-extern SemaphoreHandle_t xSem_OpenRequest_C;
-extern SemaphoreHandle_t xSem_DoorClosed_C;
+extern SemaphoreHandle_t h_sem_open_request_c;
+extern SemaphoreHandle_t h_sem_door_closed_c;
 
-extern SemaphoreHandle_t xSem_OpenRequest_D;
-extern SemaphoreHandle_t xSem_DoorClosed_D;
+extern SemaphoreHandle_t h_sem_open_request_d;
+extern SemaphoreHandle_t h_sem_door_closed_d;
 
 /********************** external functions definition ************************/
 /* Task Test thread */
@@ -169,42 +169,42 @@ void task_test(void *parameters)
 
 				case OPEN_REQUEST_A:
 					LOGGER_INFO("[Simulator] Event: Door Opening Request A");
-					xSemaphoreGive(xSem_OpenRequest_A);
+					xSemaphoreGive(h_sem_open_request_a);
 					break;
 
 				case DOOR_CLOSED_A:
 					LOGGER_INFO("[Simulator] Event: Door A closed");
-					xSemaphoreGive(xSem_DoorClosed_A);
+					xSemaphoreGive(h_sem_door_closed_a);
 					break;
 
 				case OPEN_REQUEST_B:
 					LOGGER_INFO("[Simulator] Event: Door Opening Request B");
-					xSemaphoreGive(xSem_OpenRequest_B);
+					xSemaphoreGive(h_sem_open_request_b);
 					break;
 
 				case DOOR_CLOSED_B:
 					LOGGER_INFO("[Simulator] Event: Door B closed");
-					xSemaphoreGive(xSem_DoorClosed_B);
+					xSemaphoreGive(h_sem_door_closed_b);
 					break;
 
 				case OPEN_REQUEST_C:
 					LOGGER_INFO("[Simulator] Event: Door Opening Request C");
-					xSemaphoreGive(xSem_OpenRequest_C);
+					xSemaphoreGive(h_sem_open_request_c);
 					break;
 
 				case DOOR_CLOSED_C:
 					LOGGER_INFO("[Simulator] Event: Door C closed");
-					xSemaphoreGive(xSem_DoorClosed_C);
+					xSemaphoreGive(h_sem_door_closed_c);
 					break;
 
 				case OPEN_REQUEST_D:
 					LOGGER_INFO("[Simulator] Event: Door Opening Request D");
-					xSemaphoreGive(xSem_OpenRequest_D);
+					xSemaphoreGive(h_sem_open_request_d);
 					break;
 
 				case DOOR_CLOSED_D:
 					LOGGER_INFO("[Simulator] Event: Door D closed");
-					xSemaphoreGive(xSem_DoorClosed_D);
+					xSemaphoreGive(h_sem_door_closed_d);
 					break;
 
 				default:
