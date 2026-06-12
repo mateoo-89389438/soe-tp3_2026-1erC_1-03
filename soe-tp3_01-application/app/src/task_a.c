@@ -60,7 +60,7 @@ const char *p_task_a_wait_250mS			= "   ==> Task    A - Wait:   250mS";
 
 /********************** external data declaration ****************************/
 uint32_t g_task_a_cnt;
-extern SemaphoreHandle_t xSemaphore_Producer_Consumer;
+extern SemaphoreHandle_t h_sem_producer_consumer;
 
 /********************** external functions definition ************************/
 /* Task thread */
@@ -83,8 +83,7 @@ void task_a(void *parameters)
 		LOGGER_INFO(p_task_a_wait_250mS);
 		vTaskDelay(TASK_A_DEL_MAX);
 
-		/* NOTIFICA al consumidor: Dando el semáforo binario */
-		xSemaphoreGive(xSemaphore_Producer_Consumer);
+		xSemaphoreGive(h_sem_producer_consumer);
 	}
 }
 
